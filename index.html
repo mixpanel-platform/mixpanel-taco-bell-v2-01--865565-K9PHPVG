@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
@@ -7,9 +6,321 @@
     <script src="https://cdn.mxpnl.com/libs/mixpanel-platform/build/mixpanel-platform.v0.latest.min.js"></script>
   </head>
   <body class="mixpanel-platform-body">
-    <h1>Hello, World!</h1>
+  	<style>
+  		a {
+  			text-decoration: none;
+  		}
+  		.header {
+  			font-size: 20px;
+  			color: gray;
+  			font-weight: bold;
+  			margin-bottom: 15px;
+  		}
+  		.mixpanel-platform-select.event_selector_theme {
+  			max-width: 50px;
+  		}
+  		.mixpanel-platform-select.event_selector_theme .select_button.small, .mixpanel-platform-input-select {
+  			max-width: 50px;
+  			min-width: 0;
+  		}
+  		.mixpanel-platform-select.event_selector_theme .select_button.active+.select_menu.small {
+  			max-width: 96px;
+  			min-width: 0;
+  		}
+  		.dropdown-label {
+  			vertical-align: middle;
+  			position: relative;
+  			display: inline-block;
+  		}
+  		.select {
+  			display: inline-block;
+  			width: 430px;
+  		}
+  		.select.left {
+  			left: 15px;
+  			position: relative;
+  			margin: 10px 0;
+  		}
+  		.select.right {
+  			display: inline-block;
+  			position: relative;
+  			width: 300px;
+  		}
+  		#dateSelect {
+  			display: inline-block;
+  			right: 15px;
+  			vertical-align: middle;
+  		}
+  		#unitSelect {
+  			margin-left: -50px;
+  		}
+  	</style>
+  	<script id='query'>
+		function main() {
+		    return Events({from_date: params.from_date, to_date: params.to_date})
+		    .groupByUser(function(state, events) {
+		        state = state || {
+		            sequence_list: [''],
+		            num_events_list: [0],
+		            start_time: events[0].time,
+		            sequence_index: 0
+		        };
+		        for (var i = 0; i < events.length; i++) {
+		            if (events[i].time - params.conversion_length <= state.start_time) {
+		                state.sequence_list[state.sequence_index] += events[i].name + ', ';
+		                state.num_events_list[state.sequence_index]++;
+		            }
+		            else {
+		                state.start_time = events[i].time;
+		                state.sequence_index++;
+		                state.sequence_list.push(events[i].name + ', ');
+		                state.num_events_list.push(1);
+		            }
+		        }
+		        return state;
+		    })
+		    .map(function(item) {
+		        var longest_sequence = '';
+		        var highest_count = 0;
+		        for (var i = 0; i < item.value.num_events_list.length; i++) {
+		            if (item.value.num_events_list[i] > highest_count) {
+		                longest_sequence = item.value.sequence_list[i];
+		                highest_count = item.value.num_events_list[i];
+		            }
+		        }
+		        return {sequence: longest_sequence.slice(0,-2), count: highest_count};
+		    })
+		    .filter(function(item) {return item.count >= params.event_count})
+		    .groupBy([function(item) {return item.sequence}], mixpanel.reducer.count())
+		    .reduce(mixpanel.reducer.top(params.num_results))
+		}
+    </script>
+  	<div class="mixpanel-platform-section">
+  	  <div class="header" style="display:flex;justify-content:center;align-items:center;width:100%;">Most Common User Flows</div>
+  	  <div class="dropdown-section">
+  	  	<div class="select left">
+      		<div class="dropdown-label" id="sessionlength">Session length:</div>
+      		<div id="timeSelect"></div>
+      		<div id="unitSelect"></div>
+      	</div>
+      	<div class="select right">
+      		<div class="dropdown-label">Date range:</div>
+      		<div id="dateSelect"></div>
+      	</div>
+      </div>
+      <div class="dropdown-section">
+      	<div class="select left">
+      		<div class="dropdown-label">Minimum sequence length:</div>
+      		<div id="minLengthSelect"></div>
+      	</div>
+      	<div class="select right">
+      		<div class="dropdown-label">Number of results to show:</div>
+      		<div id="numResultsSelect"></div>
+      	</div>
+      </div>
+    </div>
+    <div id="table"></div>
     <script>
-      // Run queries and display results here
+		var script = document.getElementById('query').innerHTML;
+		var eventTable = $('#table').MPTable({
+		 showPercentages: false,
+		 firstColHeader: 'Rank'
+		});
+		var dateSelect = $('#dateSelect').MPDatepicker();
+		var time_length = $('#timeSelect').MPSelect({
+		 items: [{
+		     label: '1',
+		     value: 1
+		 }, {
+		     label: '2',
+		     value: 2
+		 }, {
+		     label: '3',
+		     value: 3
+		 }, {
+		     label: '4',
+		     value: 4
+		 }, {
+		     label: '5',
+		     value: 5
+		 }, {
+		     label: '6',
+		     value: 6
+		 }, {
+		     label: '7',
+		     value: 7
+		 }, {
+		     label: '8',
+		     value: 8
+		 }, {
+		     label: '9',
+		     value: 9
+		 }, {
+		     label: '10',
+		     value: 10
+		 }, {
+		     label: '11',
+		     value: 11
+		 }, {
+		     label: '12',
+		     value: 12
+		 }, {
+		     label: '13',
+		     value: 13
+		 }, {
+		     label: '14',
+		     value: 14
+		 }, {
+		     label: '15',
+		     value: 15
+		 }, {
+		     label: '16',
+		     value: 16
+		 }, {
+		     label: '17',
+		     value: 17
+		 }, {
+		     label: '18',
+		     value: 18
+		 }, {
+		     label: '19',
+		     value: 19
+		 }, {
+		     label: '20',
+		     value: 20
+		 }, {
+		     label: '21',
+		     value: 21
+		 }, {
+		     label: '22',
+		     value: 22
+		 }, {
+		     label: '23',
+		     value: 23
+		 }, {
+		     label: '24',
+		     value: 24
+		 }, {
+		     label: '25',
+		     value: 25
+		 }, {
+		     label: '26',
+		     value: 26
+		 }, {
+		     label: '27',
+		     value: 27
+		 }, {
+		     label: '28',
+		     value: 28
+		 }, {
+		     label: '29',
+		     value: 29
+		 }, {
+		     label: '30',
+		     value: 30
+		 }, ]
+		});
+		var time_unit = $('#unitSelect').MPSelect({
+		 items: [{
+		     label: 'hours',
+		     value: 3600000
+		 }, {
+		     label: 'days',
+		     value: 86400000
+		 }, {
+		     label: 'weeks',
+		     value: 604800000
+		 }, {
+		     label: 'months',
+		     value: 2592000000
+		 }]
+		});
+		time_unit.val(86400000);
+		var min_sequence_length = $('#minLengthSelect').MPSelect({
+		 items: [{
+		     label: '1',
+		     value: 1
+		 }, {
+		     label: '2',
+		     value: 2
+		 }, {
+		     label: '3',
+		     value: 3
+		 }, {
+		     label: '4',
+		     value: 4
+		 }, {
+		     label: '5',
+		     value: 5
+		 }]
+		});
+		min_sequence_length.val(2);
+		var max_results = $('#numResultsSelect').MPSelect({
+		 items: [{
+		     label: '5',
+		     value: 5
+		 }, {
+		     label: '10',
+		     value: 10
+		 }, {
+		     label: '20',
+		     value: 20
+		 }, {
+		     label: '50',
+		     value: 50
+		 }, {
+		     label: '100',
+		     value: 100
+		 }]
+		});
+		max_results.val(10);
+		function runQuery() {
+		 var from_date = dateSelect.MPDatepicker('value').from.toISOString().slice(0, -14);
+		 var to_date = dateSelect.MPDatepicker('value').to.toISOString().slice(0, -14);
+		 var event_count = min_sequence_length.MPSelect('value');
+		 var conversion_length = time_length.MPSelect('value') * time_unit.MPSelect('value');
+		 var num_results = max_results.MPSelect('value');
+		 $('.select_button').addClass('small');
+		 $('.select_menu').addClass('small');
+		 $('#numResultsSelect, #minLengthSelect, #timeSelect, #unitSelect').css({'display': 'inline-block', 'max-width': '50px'})
+		 var params = {
+		     'from_date': from_date,
+		     'to_date': to_date,
+		     'event_count': event_count,
+		     'conversion_length': conversion_length,
+		     'num_results': num_results
+		 };
+		 MP.api.custom_query(script, params).done(function(results) {
+		     var res = ['this is a stupid placeholder to delete because MPTable displays the indexes for some reason'];
+		     if (results.length > 0) {
+		         var obj = {};
+		         for (var i = 0; i < results[0].length; i++) {
+		             res.push({
+		                 'Sequence': results[0][i].key[0],
+		                 'Count': results[0][i].value
+		             });
+		         }
+		     }
+		     delete res[0];
+		     eventTable.MPTable('setData', res);
+		 });
+		}
+		runQuery();
+		dateSelect.on('change', function() {
+		 runQuery();
+		});
+		time_length.on('change', function(e, selection) {
+		 runQuery();
+		});
+		time_unit.on('change', function(e, selection) {
+		 runQuery();
+		});
+		min_sequence_length.on('change', function(e, selection) {
+		 runQuery();
+		});
+		max_results.on('change', function(e, selection) {
+		 runQuery();
+		});
     </script>
   </body>
 </html>
